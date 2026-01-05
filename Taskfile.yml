@@ -1,0 +1,77 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Start the app in dev mode with live-reloading
+    cmds:
+      - docker compose up -d
+      - echo "Waiting for database to be ready..."
+      - sleep 3
+      - concurrently "air" "task watch:css"
+
+  watch:css:
+    desc: Watch and rebuild Tailwind CSS
+    cmds:
+      - tailwindcss -i ./web/static/css/input.css -o ./web/static/css/output.css --watch
+
+  build:
+    desc: Build the binary
+    cmds:
+      - go build -o ./tmp/main main.go
+
+  run:
+    desc: Run the binary
+    cmds:
+      - go run main.go
+
+  db:up:
+    desc: Start database
+    cmds:
+      - docker compose up -d postgres
+
+  db:migrate:
+    desc: Run database migrations
+    cmds:
+      - docker compose up migrate
+
+  db:migrate:create:
+    desc: Create a new migration file
+    cmds:
+      - goose -dir internal/store/db/migrations create {{.CLI_ARGS}} sql
+
+  db:migrate:status:
+    desc: Check migration status
+    cmds:
+      - goose -dir internal/store/db/migrations postgres "$DATABASE_URL" status
+
+  sqlc:
+    desc: Generate type-safe SQL code
+    cmds:
+      - sqlc generate
+
+  lint:
+    desc: Run linter
+    cmds:
+      - golangci-lint run --fix ./...
+
+  test:
+    desc: Run tests
+    cmds:
+      - gotestsum
+
+  nix:build:
+    desc: Build with Nix
+    cmds:
+      - nix build
+
+  nix:container:
+    desc: Build container with Nix
+    cmds:
+      - nix build .#container
+      - docker load < result
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf tmp/ result result-* coverage/
+      - docker compose down -v
