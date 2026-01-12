@@ -1,5 +1,7 @@
 # Goroutinely
 
+Follow the actual development on: https://tangled.org/majiy00.tngl.sh/go-routinely
+
 A cozy, self-hosted habit tracker with a "year in pixels" mood view. Built for the /r/selfhosted community.
 
 ## Tech Stack
